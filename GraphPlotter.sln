@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GraphPlotter", "GraphPlotter\GraphPlotter.csproj", "{2ED2A527-27AE-4B7A-8019-18D5E6606E4D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CGraph", "CGraph\CGraph.csproj", "{2ED2A527-27AE-4B7A-8019-18D5E6606E4D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
