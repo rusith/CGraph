@@ -347,16 +347,37 @@ namespace CGraph.Window
             if (e.Delta > 0)
             {
                 scaleUnits++;
-                CanScale.ScaleX *= s;
-                CanScale.ScaleY *= s;
+
+                var da = new DoubleAnimation(1 + (s * scaleUnits), TimeSpan.FromMilliseconds(500));
+                da.EasingFunction = new QuinticEase();
+                CanScale.BeginAnimation(ScaleTransform.ScaleXProperty, da);
+                CanScale.BeginAnimation(ScaleTransform.ScaleYProperty, da);
+
+                //CanScale.ScaleX *= s;
+                //CanScale.ScaleY *= s;
             }
             else
             {
                 if (scaleUnits != 0)
                 {
                     scaleUnits--;
-                    CanScale.ScaleX /= s;
-                    CanScale.ScaleY /= s;
+                    var da = new DoubleAnimation(1 + (s * scaleUnits), TimeSpan.FromMilliseconds(500));
+                    da.EasingFunction = new QuinticEase();
+                    da.Changed += (a, b) =>
+                    {
+                        Limit();
+                    };
+                    da.Completed += (a, b) =>
+                    {
+                        Limit();
+                    };
+                    CanScale.BeginAnimation(ScaleTransform.ScaleXProperty, da);
+                    CanScale.BeginAnimation(ScaleTransform.ScaleYProperty, da);
+
+                    
+
+                    //CanScale.ScaleX /= s;
+                    //CanScale.ScaleY /= s;
                     Limit();
                 }
             }

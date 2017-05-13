@@ -9,7 +9,7 @@
         Title="Graph" Height="560.976" Width="679.244" Loaded="OnWindowLoaded">
     <Grid Background="LightBlue">
         <Grid Background="white" x:Name="HoldingGrid" Margin="166,0,0,0" ClipToBounds="True">
-            <Canvas Name="CanGraph" Background="White" MouseWheel="OnCanvasMouseWheel" MouseDown="OnCanvasMouseDown" MouseMove="OnCanvasMouseMove">
+            <Canvas Name="CanGraph" Background="White" MouseWheel="OnCanvasMouseWheel" MouseDown="OnCanvasMouseDown" MouseMove="OnCanvasMouseMove" RenderTransformOrigin="0.5 0.5">
                 <Canvas.RenderTransform>
                     <TransformGroup>
                         <TranslateTransform x:Name="CanTranslate"></TranslateTransform>
