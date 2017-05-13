@@ -13,14 +13,14 @@
                 <ScaleTransform x:Name="CanScale"></ScaleTransform>
             </Canvas.RenderTransform>
         </Canvas>
-        <TextBox x:Name="ExpressionTextBox" TextChanged="OnExpressionChanged" HorizontalAlignment="Left" Height="23" Margin="37,5,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="124"/>
+        <TextBox x:Name="ExpressionTextBox" TextChanged="OnExpressionChanged" HorizontalAlignment="Left" Height="23" Margin="37,5,0,0" TextWrapping="Wrap" Text="x" VerticalAlignment="Top" Width="124"/>
         <Label x:Name="ErrorLabel" Foreground="Red" FontSize="9" HorizontalAlignment="Left" Margin="10,98,0,0" VerticalAlignment="Top" Width="151" Height="34"/>
         <Label x:Name="label" Content="y = " HorizontalAlignment="Left" Height="33" Margin="10,0,0,0" VerticalAlignment="Top" Width="39"/>
-        <ListView x:Name="Table" Margin="10,146,0,73" HorizontalAlignment="Left" Width="120">
+        <ListView x:Name="Table" Margin="10,146,0,73" HorizontalAlignment="Left" Width="145">
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="X" DisplayMemberBinding="{Binding Item1}"  Width="55"/>
-                    <GridViewColumn Header="Y" DisplayMemberBinding="{Binding Item2}" Width="55"/>
+                    <GridViewColumn Header="X" DisplayMemberBinding="{Binding Item1}"  Width="72"/>
+                    <GridViewColumn Header="Y" DisplayMemberBinding="{Binding Item2}" Width="72"/>
                 </GridView>
             </ListView.View>
         </ListView>
@@ -28,6 +28,6 @@
         <TextBox x:Name="To" HorizontalAlignment="Left" Height="23" Margin="90,38,0,0" TextWrapping="Wrap" Text="10" VerticalAlignment="Top" Width="65" TextChanged="OnValueChange"/>
         <Label x:Name="label1" Content="-" HorizontalAlignment="Left" Margin="74,36,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="Def" HorizontalAlignment="Left" Height="23" Margin="52,66,0,0" TextWrapping="Wrap" Text="1" VerticalAlignment="Top" Width="55" TextChanged="OnValueChange"/>
-        <Label x:Name="Slope" Content="∆y/∆x = 10" HorizontalAlignment="Left" Margin="24,0,0,10" Width="83" Height="39" VerticalAlignment="Bottom"/>
+        <Label HorizontalContentAlignment="Center" VerticalContentAlignment="Center" x:Name="Slope" Content="∆y/∆x = 10" HorizontalAlignment="Left" Margin="11,0,0,10" Width="144" Height="39" VerticalAlignment="Bottom"/>
     </Grid>
 </Window>

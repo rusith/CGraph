@@ -10,6 +10,9 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
+using System.Diagnostics;
+using System.Windows.Media.Animation;
+
 namespace CGraph.Window
 {
     /// <summary>
@@ -17,6 +20,8 @@ namespace CGraph.Window
     /// </summary>
     public partial class Graph
     {
+        private int scaleUnits = 0;
+
         public Graph()
         {
             InitializeComponent();
@@ -25,9 +30,9 @@ namespace CGraph.Window
         private static double Evaluate(string exp)
         {
             var loDataTable = new DataTable();
-            loDataTable.Columns.Add(new DataColumn("Eval", typeof (double), exp));
+            loDataTable.Columns.Add(new DataColumn("Eval", typeof(double), exp));
             loDataTable.Rows.Add(0);
-            return (double) (loDataTable.Rows[0]["Eval"]);
+            return (double)(loDataTable.Rows[0]["Eval"]);
         }
 
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
@@ -78,7 +83,7 @@ namespace CGraph.Window
 
         private void Paint()
         {
-           
+            //MessageBox.Show(Evaluate("256/10").ToString());
             SetError();
             double from = -10;
             double to = 10;
@@ -150,14 +155,22 @@ namespace CGraph.Window
 
             for (var i = 1; i <= maxY; i ++)
             {
-                var textBlock = new TextBlock { Text = i.ToString(), Foreground = new SolidColorBrush(Colors.Black), FontSize = yh2P5P };
-                Canvas.SetTop(textBlock, (zeroPoint.Y - (i * yh5P)) - (yh2P5P / 2));
-                Canvas.SetLeft(textBlock, zeroPoint.X + yh2P5P);
-                CanGraph.Children.Add(textBlock);
+                try
+                {
+                    var textBlock = new TextBlock { Text = i.ToString(), Foreground = new SolidColorBrush(Colors.Black), FontSize = yh2P5P };
+                    Canvas.SetTop(textBlock, (zeroPoint.Y - (i * yh5P)) - (yh2P5P / 2));
+                    Canvas.SetLeft(textBlock, zeroPoint.X + yh2P5P);
+                    CanGraph.Children.Add(textBlock);
 
-                yaxisGeo.Children.Add(new LineGeometry(
-                    new Point(zeroPoint.X - 5, zeroPoint.Y - (i * yh5P)),
-                    new Point(zeroPoint.X + 5, zeroPoint.Y - (i * yh5P))));
+                    yaxisGeo.Children.Add(new LineGeometry(
+                        new Point(zeroPoint.X - 5, zeroPoint.Y - (i * yh5P)),
+                        new Point(zeroPoint.X + 5, zeroPoint.Y - (i * yh5P))));
+                }
+                catch (Exception)
+                {
+                    SetError("too much higher y");
+                }
+                
             }
 
 
@@ -264,6 +277,18 @@ namespace CGraph.Window
             Table.ItemsSource = new ObservableCollection<Tuple<double, double>>(dataSet);
             PaintLine(dataSet, yh5P,xh5P, zeroPoint);
             CalculateSlope(dataSet);
+
+            AnimateCanvas();
+        }
+
+        /// <summary>
+        /// Add a simple fading animation when the user changes the expression and the graph is repainted
+        /// </summary>
+        private void AnimateCanvas()
+        {
+            var da = new DoubleAnimation(0,1,TimeSpan.FromSeconds(1));
+            da.EasingFunction = new QuinticEase();
+            CanGraph.BeginAnimation(OpacityProperty,da);
         }
 
         private Point TransformPoint(double x, double y, double yh5P, double xh5P, Point zeroPoint)
@@ -315,19 +340,24 @@ namespace CGraph.Window
         {
             Paint();
         }
-
+        
         private void OnCanvasMouseWheel(object sender, MouseWheelEventArgs e)
         {
             const double s = 1.1;
             if (e.Delta > 0)
             {
+                scaleUnits++;
                 CanScale.ScaleX *= s;
                 CanScale.ScaleY *= s;
             }
             else
             {
-                CanScale.ScaleX /= s;
-                CanScale.ScaleY /= s;
+                if (scaleUnits != 0)
+                {
+                    scaleUnits--;
+                    CanScale.ScaleX /= s;
+                    CanScale.ScaleY /= s;
+                }
             }
         }
         
