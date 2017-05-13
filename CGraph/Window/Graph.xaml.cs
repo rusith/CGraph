@@ -357,6 +357,7 @@ namespace CGraph.Window
                     scaleUnits--;
                     CanScale.ScaleX /= s;
                     CanScale.ScaleY /= s;
+                    Limit();
                 }
             }
         }
@@ -365,6 +366,48 @@ namespace CGraph.Window
         private void OnValueChange(object sender, TextChangedEventArgs e)
         {
             Paint();
+        }
+        
+        private Point prevPos;
+
+        private double prevX, prevY;
+
+        private void OnCanvasMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.MiddleButton == MouseButtonState.Pressed)
+            {
+                prevPos = e.GetPosition(this);
+                prevX = CanTranslate.X;
+                prevY = CanTranslate.Y;
+            }
+        }
+
+        private void OnCanvasMouseMove(object sender, MouseEventArgs e)
+        {
+            if (scaleUnits > 0 && e.MiddleButton == MouseButtonState.Pressed)
+            {
+                var newPos = e.GetPosition(this) - prevPos;
+
+                // Move the canvas
+                CanTranslate.X = prevX + newPos.X / CanScale.ScaleX;
+                CanTranslate.Y = prevY + newPos.Y / CanScale.ScaleY;
+
+                Limit();
+            }
+        }
+
+        /// <summary>
+        /// Limit the boundaries of the Canvas Element
+        /// </summary>
+        private void Limit()
+        {
+            // Limit the upper left corner
+            CanTranslate.X = (CanTranslate.X > 0) ? 0 : CanTranslate.X;
+            CanTranslate.Y = (CanTranslate.Y > 0) ? 0 : CanTranslate.Y;
+
+            // Limit the bottom right corner, Still probably bad :P
+            CanTranslate.X = (CanTranslate.X < (HoldingGrid.RenderSize.Width - CanGraph.RenderSize.Width * CanScale.ScaleX)) ? (HoldingGrid.RenderSize.Width - CanGraph.RenderSize.Width * CanScale.ScaleX) : CanTranslate.X;
+            CanTranslate.Y = (CanTranslate.Y < (HoldingGrid.RenderSize.Height - CanGraph.RenderSize.Height * CanScale.ScaleY)) ? (HoldingGrid.RenderSize.Height - CanGraph.RenderSize.Height * CanScale.ScaleY) : CanTranslate.Y;
         }
     }
 }

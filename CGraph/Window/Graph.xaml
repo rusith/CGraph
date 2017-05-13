@@ -8,11 +8,17 @@
         mc:Ignorable="d"
         Title="Graph" Height="560.976" Width="679.244" Loaded="OnWindowLoaded">
     <Grid Background="LightBlue">
-        <Canvas Name="CanGraph" Background="White" Margin="166,0,0,0" MouseWheel="OnCanvasMouseWheel">
-            <Canvas.RenderTransform>
-                <ScaleTransform x:Name="CanScale"></ScaleTransform>
-            </Canvas.RenderTransform>
-        </Canvas>
+        <Grid Background="white" x:Name="HoldingGrid" Margin="166,0,0,0" ClipToBounds="True">
+            <Canvas Name="CanGraph" Background="White" MouseWheel="OnCanvasMouseWheel" MouseDown="OnCanvasMouseDown" MouseMove="OnCanvasMouseMove">
+                <Canvas.RenderTransform>
+                    <TransformGroup>
+                        <TranslateTransform x:Name="CanTranslate"></TranslateTransform>
+                        <ScaleTransform x:Name="CanScale"></ScaleTransform>
+                    </TransformGroup>
+                </Canvas.RenderTransform>
+            </Canvas>
+        </Grid>
+       
         <TextBox x:Name="ExpressionTextBox" TextChanged="OnExpressionChanged" HorizontalAlignment="Left" Height="23" Margin="37,5,0,0" TextWrapping="Wrap" Text="x" VerticalAlignment="Top" Width="124"/>
         <Label x:Name="ErrorLabel" Foreground="Red" FontSize="9" HorizontalAlignment="Left" Margin="10,98,0,0" VerticalAlignment="Top" Width="151" Height="34"/>
         <Label x:Name="label" Content="y = " HorizontalAlignment="Left" Height="33" Margin="10,0,0,0" VerticalAlignment="Top" Width="39"/>
