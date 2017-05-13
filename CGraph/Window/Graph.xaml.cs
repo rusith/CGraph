@@ -10,6 +10,9 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
+using System.Diagnostics;
+using System.Windows.Media.Animation;
+
 namespace CGraph.Window
 {
     /// <summary>
@@ -17,6 +20,8 @@ namespace CGraph.Window
     /// </summary>
     public partial class Graph
     {
+        private int scaleUnits = 0;
+
         public Graph()
         {
             InitializeComponent();
@@ -25,9 +30,9 @@ namespace CGraph.Window
         private static double Evaluate(string exp)
         {
             var loDataTable = new DataTable();
-            loDataTable.Columns.Add(new DataColumn("Eval", typeof (double), exp));
+            loDataTable.Columns.Add(new DataColumn("Eval", typeof(double), exp));
             loDataTable.Rows.Add(0);
-            return (double) (loDataTable.Rows[0]["Eval"]);
+            return (double)(loDataTable.Rows[0]["Eval"]);
         }
 
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
@@ -78,7 +83,7 @@ namespace CGraph.Window
 
         private void Paint()
         {
-           
+            //MessageBox.Show(Evaluate("256/10").ToString());
             SetError();
             double from = -10;
             double to = 10;
@@ -150,14 +155,22 @@ namespace CGraph.Window
 
             for (var i = 1; i <= maxY; i ++)
             {
-                var textBlock = new TextBlock { Text = i.ToString(), Foreground = new SolidColorBrush(Colors.Black), FontSize = yh2P5P };
-                Canvas.SetTop(textBlock, (zeroPoint.Y - (i * yh5P)) - (yh2P5P / 2));
-                Canvas.SetLeft(textBlock, zeroPoint.X + yh2P5P);
-                CanGraph.Children.Add(textBlock);
+                try
+                {
+                    var textBlock = new TextBlock { Text = i.ToString(), Foreground = new SolidColorBrush(Colors.Black), FontSize = yh2P5P };
+                    Canvas.SetTop(textBlock, (zeroPoint.Y - (i * yh5P)) - (yh2P5P / 2));
+                    Canvas.SetLeft(textBlock, zeroPoint.X + yh2P5P);
+                    CanGraph.Children.Add(textBlock);
 
-                yaxisGeo.Children.Add(new LineGeometry(
-                    new Point(zeroPoint.X - 5, zeroPoint.Y - (i * yh5P)),
-                    new Point(zeroPoint.X + 5, zeroPoint.Y - (i * yh5P))));
+                    yaxisGeo.Children.Add(new LineGeometry(
+                        new Point(zeroPoint.X - 5, zeroPoint.Y - (i * yh5P)),
+                        new Point(zeroPoint.X + 5, zeroPoint.Y - (i * yh5P))));
+                }
+                catch (Exception)
+                {
+                    SetError("too much higher y");
+                }
+                
             }
 
 
@@ -264,6 +277,18 @@ namespace CGraph.Window
             Table.ItemsSource = new ObservableCollection<Tuple<double, double>>(dataSet);
             PaintLine(dataSet, yh5P,xh5P, zeroPoint);
             CalculateSlope(dataSet);
+
+            AnimateCanvas();
+        }
+
+        /// <summary>
+        /// Add a simple fading animation when the user changes the expression and the graph is repainted
+        /// </summary>
+        private void AnimateCanvas()
+        {
+            var da = new DoubleAnimation(0,1,TimeSpan.FromSeconds(1));
+            da.EasingFunction = new QuinticEase();
+            CanGraph.BeginAnimation(OpacityProperty,da);
         }
 
         private Point TransformPoint(double x, double y, double yh5P, double xh5P, Point zeroPoint)
@@ -315,19 +340,46 @@ namespace CGraph.Window
         {
             Paint();
         }
-
+        
         private void OnCanvasMouseWheel(object sender, MouseWheelEventArgs e)
         {
             const double s = 1.1;
             if (e.Delta > 0)
             {
-                CanScale.ScaleX *= s;
-                CanScale.ScaleY *= s;
+                scaleUnits++;
+
+                var da = new DoubleAnimation(1 + (s * scaleUnits), TimeSpan.FromMilliseconds(500));
+                da.EasingFunction = new QuinticEase();
+                CanScale.BeginAnimation(ScaleTransform.ScaleXProperty, da);
+                CanScale.BeginAnimation(ScaleTransform.ScaleYProperty, da);
+
+                //CanScale.ScaleX *= s;
+                //CanScale.ScaleY *= s;
             }
             else
             {
-                CanScale.ScaleX /= s;
-                CanScale.ScaleY /= s;
+                if (scaleUnits != 0)
+                {
+                    scaleUnits--;
+                    var da = new DoubleAnimation(1 + (s * scaleUnits), TimeSpan.FromMilliseconds(500));
+                    da.EasingFunction = new QuinticEase();
+                    da.Changed += (a, b) =>
+                    {
+                        Limit();
+                    };
+                    da.Completed += (a, b) =>
+                    {
+                        Limit();
+                    };
+                    CanScale.BeginAnimation(ScaleTransform.ScaleXProperty, da);
+                    CanScale.BeginAnimation(ScaleTransform.ScaleYProperty, da);
+
+                    
+
+                    //CanScale.ScaleX /= s;
+                    //CanScale.ScaleY /= s;
+                    Limit();
+                }
             }
         }
         
@@ -335,6 +387,48 @@ namespace CGraph.Window
         private void OnValueChange(object sender, TextChangedEventArgs e)
         {
             Paint();
+        }
+        
+        private Point prevPos;
+
+        private double prevX, prevY;
+
+        private void OnCanvasMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.MiddleButton == MouseButtonState.Pressed)
+            {
+                prevPos = e.GetPosition(this);
+                prevX = CanTranslate.X;
+                prevY = CanTranslate.Y;
+            }
+        }
+
+        private void OnCanvasMouseMove(object sender, MouseEventArgs e)
+        {
+            if (scaleUnits > 0 && e.MiddleButton == MouseButtonState.Pressed)
+            {
+                var newPos = e.GetPosition(this) - prevPos;
+
+                // Move the canvas
+                CanTranslate.X = prevX + newPos.X / CanScale.ScaleX;
+                CanTranslate.Y = prevY + newPos.Y / CanScale.ScaleY;
+
+                Limit();
+            }
+        }
+
+        /// <summary>
+        /// Limit the boundaries of the Canvas Element
+        /// </summary>
+        private void Limit()
+        {
+            // Limit the upper left corner
+            CanTranslate.X = (CanTranslate.X > 0) ? 0 : CanTranslate.X;
+            CanTranslate.Y = (CanTranslate.Y > 0) ? 0 : CanTranslate.Y;
+
+            // Limit the bottom right corner, Still probably bad :P
+            CanTranslate.X = (CanTranslate.X < (HoldingGrid.RenderSize.Width - CanGraph.RenderSize.Width * CanScale.ScaleX)) ? (HoldingGrid.RenderSize.Width - CanGraph.RenderSize.Width * CanScale.ScaleX) : CanTranslate.X;
+            CanTranslate.Y = (CanTranslate.Y < (HoldingGrid.RenderSize.Height - CanGraph.RenderSize.Height * CanScale.ScaleY)) ? (HoldingGrid.RenderSize.Height - CanGraph.RenderSize.Height * CanScale.ScaleY) : CanTranslate.Y;
         }
     }
 }
